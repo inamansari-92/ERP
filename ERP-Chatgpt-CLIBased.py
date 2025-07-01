@@ -20,6 +20,8 @@ EMPLOYEES = [
     "Asad Anwar"
 ]
 
+LOCATIONS = ["Office", "Warehouse", "Field"]
+
 DATA_DIR = "records"
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -83,8 +85,24 @@ def generate_invoice_pdf(customer, company, invoice_no, delivery_date, vehicle_n
     elements.append(Spacer(1, 10))
     elements.append(Paragraph(amount_in_words, styles['Normal']))
 
+    # Attendance PDF Embed
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    attendance_file = os.path.join(DATA_DIR, f"attendance_{today}.csv")
+    if os.path.exists(attendance_file):
+        elements.append(Spacer(1, 30))
+        elements.append(Paragraph("Attendance Record:", styles['Heading3']))
+        with open(attendance_file) as f:
+            rows = list(csv.reader(f))
+        table = Table(rows, colWidths=[160, 80, 80, 100])
+        table.setStyle(TableStyle([
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 10),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),
+            ('ALIGN', (1, 0), (-1, -1), 'CENTER')
+        ]))
+        elements.append(table)
+
     doc.build(elements)
-    print(f"Invoice PDF saved as {file_name}")
+    print(f"Invoice PDF with attendance saved as {file_name}")
 
 
 def mark_attendance():
@@ -92,10 +110,17 @@ def mark_attendance():
     filename = os.path.join(DATA_DIR, f"attendance_{today}.csv")
     with open(filename, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["Employee", "Present (Y/N)"])
+        writer.writerow(["Employee", "Location", "Entry Time", "Exit Time"])
         for emp in EMPLOYEES:
-            status = input(f"Is {emp} present today? (Y/N): ")
-            writer.writerow([emp, status])
+            print(f"\nMarking attendance for {emp}:")
+            print("Choose location:")
+            for i, loc in enumerate(LOCATIONS):
+                print(f"{i+1}. {loc}")
+            loc_choice = input("Location number: ")
+            location = LOCATIONS[int(loc_choice) - 1] if loc_choice in ['1', '2', '3'] else "Unknown"
+            entry = input("Entry Time (HH:MM): ")
+            exit_ = input("Exit Time (HH:MM): ")
+            writer.writerow([emp, location, entry, exit_])
     print(f"Attendance for {today} saved in {filename}")
 
 
@@ -122,7 +147,7 @@ def log_delivery():
 def main():
     while True:
         print("\nERP CLI Menu:")
-        print("1. Generate Invoice")
+        print("1. Generate Invoice + Attendance PDF")
         print("2. Mark Attendance")
         print("3. Log Delivery")
         print("4. Exit")
