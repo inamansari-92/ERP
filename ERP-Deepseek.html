@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP System - Operations Management</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding-bottom: 40px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+        }
+        
+        .nav-tab {
+            padding: 15px 30px;
+            margin: 5px;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .module {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .module.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        
+        .radio-group input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .filters {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filters h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .invoice-preview {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+        
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 20px;
+        }
+        
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .invoice-items {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .invoice-total {
+            text-align: right;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .export-options {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .report-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .report-card h4 {
+            margin-bottom: 15px;
+            color: #667eea;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .invoice-details {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .nav-tab {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 ERP Management System</h1>
+            <p>Comprehensive Operations, Attendance, Invoicing & Logistics Platform</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showModule('attendance')">👥 Attendance</button>
+            <button class="nav-tab" onclick="showModule('invoicing')">📄 Invoicing</button>
+            <button class="nav-tab" onclick="showModule('delivery')">🚛 Delivery Ledger</button>
+            <button class="nav-tab" onclick="showModule('reports')">📊 Reports</button>
+        </div>
+        
+        <!-- Attendance Module -->
+        <div id="attendance" class="module active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="todayAttendance">0</h3>
+                    <p>Today's Attendance</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="monthlyHours">0</h3>
+                    <p>Monthly Hours</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="activeEmployees">0</h3>
+                    <p>Active Employees</p>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>📝 Daily Attendance Entry</h3>
+                <form id="attendanceForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="employeeName">Employee Name</label>
+                            <select id="employeeName" required>
+                                <option value="">Select Employee</option>
+                                <option value="Ahmed Ali">Ahmed Ali</option>
+                                <option value="Fatima Khan">Fatima Khan</option>
+                                <option value="Hassan Sheikh">Hassan Sheikh</option>
+                                <option value="Ayesha Malik">Ayesha Malik</option>
+                                <option value="Usman Ahmed">Usman Ahmed</option>
+                                <option value="Zainab Qureshi">Zainab Qureshi</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="department">Department/Role</label>
+                            <select id="department" required>
+                                <option value="">Select Department</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Logistics">Logistics</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Warehouse">Warehouse</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="attendanceDate">Date</label>
+                            <input type="date" id="attendanceDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="entryTime">Entry Time</label>
+                            <input type="time" id="entryTime" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="exitTime">Exit Time</label>
+                            <input type="time" id="exitTime">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Work Type</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="workType" value="Office" required> Office</label>
+                                <label><input type="radio" name="workType" value="Warehouse"> Warehouse</label>
+                                <label><input type="radio" name="workType" value="Field"> Field</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">📝 Record Attendance</button>
+                </form>
+            </div>
+            
+            <div class="filters">
+                <h4>🔍 Filter Attendance Records</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="filterEmployee">Filter by Employee</label>
+                        <select id="filterEmployee">
+                            <option value="">All Employees</option>
+                            <option value="Ahmed Ali">Ahmed Ali</option>
+                            <option value="Fatima Khan">Fatima Khan</option>
+                            <option value="Hassan Sheikh">Hassan Sheikh</option>
+                            <option value="Ayesha Malik">Ayesha Malik</option>
+                            <option value="Usman Ahmed">Usman Ahmed</option>
+                            <option value="Zainab Qureshi">Zainab Qureshi</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterWorkType">Filter by Work Type</label>
+                        <select id="filterWorkType">
+                            <option value="">All Types</option>
+                            <option value="Office">Office</option>
+                            <option value="Warehouse">Warehouse</option>
+                            <option value="Field">Field</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterDate">Filter by Date</label>
+                        <input type="date" id="filterDate">
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button onclick="filterAttendance()" class="btn btn-secondary">🔍 Apply Filters</button>
+                    <button onclick="clearAttendanceFilters()" class="btn btn-secondary">🗑️ Clear Filters</button>
+                    <button onclick="exportAttendancePDF()" class="btn btn-success">📄 Export PDF</button>
+                    <button onclick="exportAttendanceExcel()" class="btn btn-success">📊 Export Excel</button>
+                </div>
+            </div>
+            
+            <table class="data-table" id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Employee</th>
+                        <th>Department</th>
+                        <th>Work Type</th>
+                        <th>Entry Time</th>
+                        <th>Exit Time</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                    <!-- Attendance records will be populated here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Invoicing Module -->
+        <div id="invoicing" class="module">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalInvoices">0</h3>
+                    <p>Total Invoices</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="monthlyRevenue">Rs. 0</h3>
+                    <p>Monthly Revenue</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="pendingInvoices">0</h3>
+                    <p>Pending Invoices</p>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>📄 Create New Invoice</h3>
+                <form id="invoiceForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="invoiceDate">Invoice Date</label>
+                            <input type="date" id="invoiceDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clientName">Client Name</label>
+                            <select id="clientName" required>
+                                <option value="">Select Client</option>
+                                <option value="A.L.U International">A.L.U International (Mr. Adnan Sb)</option>
+                                <option value="Niazi Bricks">Niazi Bricks (Mr. Talha Niazi Sb)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="itemDescription">Item Description</label>
+                            <textarea id="itemDescription" rows="3" required placeholder="Enter item description..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" id="quantity" required min="1" step="0.01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="rate">Rate (Rs.)</label>
+                            <input type="number" id="rate" required min="0" step="0.01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="taxPercentage">Tax (%)</label>
+                            <input type="number" id="taxPercentage" min="0" max="100" step="0.01" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Subtotal: Rs. <span id="subtotal">0.00</span></label>
+                        </div>
+                        <div class="form-group">
+                            <label>Tax Amount: Rs. <span id="taxAmount">0.00</span></label>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Grand Total: Rs. <span id="grandTotal">0.00</span></strong></label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">📄 Generate Invoice</button>
+                    <button type="button" onclick="previewInvoice()" class="btn btn-secondary">👁️ Preview</button>
+                </form>
+            </div>
+            
+            <div id="invoicePreview" class="invoice-preview" style="display: none;">
+                <div class="invoice-header">
+                    <h2>INVOICE</h2>
+                    <p>Invoice #: <span id="previewInvoiceNumber"></span></p>
+                    <p>Date: <span id="previewDate"></span></p>
+                </div>
+                
+                <div class="invoice-details">
+                    <div>
+                        <h4>Bill To:</h4>
+                        <p id="previewClient"></p>
+                    </div>
+                    <div>
+                        <h4>From:</h4>
+                        <p>ERP Management System<br>
+                        Karachi, Pakistan</p>
+                    </div>
+                </div>
+                
+                <table class="invoice-items data-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewItems">
+                    </tbody>
+                </table>
+                
+                <div class="invoice-total">
+                    <p>Subtotal: Rs. <span id="previewSubtotal"></span></p>
+                    <p>Tax: Rs. <span id="previewTax"></span></p>
+                    <p><strong>Grand Total: Rs. <span id="previewGrandTotal"></span></strong></p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button onclick="downloadInvoicePDF()" class="btn btn-success">📄 Download PDF</button>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <h4>🔍 Invoice History</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="filterInvoiceClient">Filter by Client</label>
+                        <select id="filterInvoiceClient">
+                            <option value="">All Clients</option>
+                            <option value="A.L.U International">A.L.U International</option>
+                            <option value="Niazi Bricks">Niazi Bricks</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterInvoiceDate">Filter by Date</label>
+                        <input type="date" id="filterInvoiceDate">
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button onclick="filterInvoices()" class="btn btn-secondary">🔍 Apply Filters</button>
+                    <button onclick="clearInvoiceFilters()" class="btn btn-secondary">🗑️ Clear Filters</button>
+                </div>
+            </div>
+            
+            <table class="data-table" id="invoiceTable">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceTableBody">
+                    <!-- Invoice records will be populated here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Delivery Ledger Module -->
+        <div id="delivery" class="module">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalDeliveries">0</h3>
+                    <p>Total Deliveries</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="activeVehicles">0</h3>
+                    <p>Active Vehicles</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="monthlyDeliveries">0</h3>
+                    <p>Monthly Deliveries</p>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>🚛 Delivery Entry</h3>
+                <form id="deliveryForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="vehicleNumber">Vehicle Number</label>
+                            <input type="text" id="vehicleNumber" required placeholder="e.g., KHI-1234">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="driverName">Driver Name</label>
+                            <input type="text" id="driverName" required placeholder="Enter driver name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="deliveryDate">Delivery Date</label>
+                            <input type="date" id="deliveryDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="destination">Destination</label>
+                            <input type="text" id="destination" required placeholder="Enter destination">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="deliveryClient">Client</label>
+                            <select id="deliveryClient" required>
+                                <option value="">Select Client</option>
+                                <option value="A.L.U International">A.L.U International (Mr. Adnan Sb)</option>
+                                <option value="Niazi Bricks">Niazi Bricks (Mr. Talha Niazi Sb)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="materialType">Material Type</label>
+                            <select id="materialType" required>
+                                <option value="">Select Material</option>
+                                <option value="Bricks">Bricks</option>
+                                <option value="Cement">Cement</option>
+                                <option value="Steel">Steel</option>
+                                <option value="Sand">Sand</option>
+                                <option value="Gravel">Gravel</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="deliveryQuantity">Quantity</label>
+                            <input type="number" id="deliveryQuantity" required min="1" step="0.01" placeholder="Enter quantity">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quantityUnit">Unit</label>
+                            <select id="quantityUnit" required>
+                                <option value="Pieces">Pieces</option>
+                                <option value="Tons">Tons</option>
+                                <option value="Bags">Bags</option>
+                                <option value="Cubic Meters">Cubic Meters</option>
+                                <option value="Kg">Kg</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">🚛 Record Delivery</button>
+                </form>
+            </div>
+            
+            <div class="filters">
+                <h4>🔍 Filter Delivery Records</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="filterVehicle">Filter by Vehicle</label>
+                        <input type="text" id="filterVehicle" placeholder="Enter vehicle number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterDeliveryClient">Filter by Client</label>
+                        <select id="filterDeliveryClient">
+                            <option value="">All Clients</option>
+                            <option value="A.L.U International">A.L.U International</option>
+                            <option value="Niazi Bricks">Niazi Bricks</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterDeliveryDate">Filter by Date</label>
+                        <input type="date" id="filterDeliveryDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="filterMaterial">Filter by Material</label>
+                        <select id="filterMaterial">
+                            <option value="">All Materials</option>
+                            <option value="Bricks">Bricks</option>
+                            <option value="Cement">Cement</option>
+                            <option value="Steel">Steel</option>
+                            <option value="Sand">Sand</option>
+                            <option value="Gravel">Gravel</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button onclick="filterDeliveries()" class="btn btn-secondary">🔍 Apply Filters</button>
+                    <button onclick="clearDeliveryFilters()" class="btn btn-secondary">🗑️ Clear Filters</button>
+                    <button onclick="exportDeliveryPDF()" class="btn btn-success">📄 Export PDF</button>
+                    <button onclick="exportDeliveryExcel()" class="btn btn-success">📊 Export Excel</button>
+                </div>
+            </div>
+            
+            <table class="data-table" id="deliveryTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Driver</th>
+                        <th>Destination</th>
+                        <th>Client</th>
+                        <th>Material</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody id="deliveryTableBody">
+                    <!-- Delivery records will be populated here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Reports Module -->
+        <div id="reports" class="module">
+            <div class="form-section">
+                <h3>📊 Generate Reports</h3>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="reportType">Report Type</label>
+                        <select id="reportType" required>
+                            <option value="">Select Report Type</option>
+                            <option value="attendance">Attendance Summary</option>
+                            <option value="invoice">Invoice Summary</option>
+                            <option value="delivery">Delivery Summary</option>
+                            <option value="client">Client-wise Summary</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reportStartDate">Start Date</label>
+                        <input type="date" id="reportStartDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reportEndDate">End Date</label>
+                        <input type="date" id="reportEndDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reportClient">Client (for Client-wise reports)</label>
+                        <select id="reportClient">
+                            <option value="">All Clients</option>
+                            <option value="A.L.U International">A.L.U International</option>
+                            <option value="Niazi Bricks">Niazi Bricks</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button onclick="generateReport()" class="btn btn-primary">📊 Generate Report</button>
+            </div>
+            
+            <div id="reportResults">
+                <!-- Report results will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let attendanceRecords = [];
+        let invoiceRecords = [];
+        let deliveryRecords = [];
+        let currentInvoiceId = 1000;
+        let currentPreviewInvoice = null;
+        
+        // Initialize the application
+        function initApp() {
+            // Set current date in all date fields
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('attendanceDate').value = today;
+            document.getElementById('invoiceDate').value = today;
+            document.getElementById('deliveryDate').value = today;
+            document.getElementById('reportStartDate').value = today;
+            document.getElementById('reportEndDate').value = today;
+            
+            // Load saved data from localStorage
+            loadSavedData();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Calculate invoice totals when inputs change
+            document.getElementById('quantity').addEventListener('input', calculateInvoiceTotals);
+            document.getElementById('rate').addEventListener('input', calculateInvoiceTotals);
+            document.getElementById('taxPercentage').addEventListener('input', calculateInvoiceTotals);
+            
+            // Render initial data
+            renderAttendanceTable();
+            renderInvoiceTable();
+            renderDeliveryTable();
+            updateStats();
+        }
+        
+        // Load saved data from localStorage
+        function loadSavedData() {
+            attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+            invoiceRecords = JSON.parse(localStorage.getItem('invoiceRecords')) || [];
+            deliveryRecords = JSON.parse(localStorage.getItem('deliveryRecords')) || [];
+            
+            // Set current invoice ID based on existing records
+            if (invoiceRecords.length > 0) {
+                currentInvoiceId = Math.max(...invoiceRecords.map(inv => parseInt(inv.id.substring(3)))) + 1;
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('attendanceForm').addEventListener('submit', recordAttendance);
+            document.getElementById('invoiceForm').addEventListener('submit', generateInvoice);
+            document.getElementById('deliveryForm').addEventListener('submit', recordDelivery);
+        }
+        
+        // Module navigation
+        function showModule(moduleId) {
+            // Hide all modules
+            document.querySelectorAll('.module').forEach(module => {
+                module.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected module and activate its tab
+            document.getElementById(moduleId).classList.add('active');
+            document.querySelector(`.nav-tab[onclick="showModule('${moduleId}')"]`).classList.add('active');
+        }
+        
+        // Attendance Management
+        function recordAttendance(e) {
+            e.preventDefault();
+            
+            const employee = document.getElementById('employeeName').value;
+            const department = document.getElementById('department').value;
+            const date = document.getElementById('attendanceDate').value;
+            const entryTime = document.getElementById('entryTime').value;
+            const exitTime = document.getElementById('exitTime').value;
+            const workType = document.querySelector('input[name="workType"]:checked').value;
+            
+            // Calculate duration
+            let duration = "N/A";
+            if (entryTime && exitTime) {
+                const entry = new Date(`${date}T${entryTime}`);
+                const exit = new Date(`${date}T${exitTime}`);
+                const diffMs = exit - entry;
+                const diffHrs = Math.floor((diffMs % 86400000) / 3600000);
+                const diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000);
+                duration = `${diffHrs}h ${diffMins}m`;
+            }
+            
+            // Create record
+            const record = {
+                id: Date.now(),
+                employee,
+                department,
+                date,
+                entryTime,
+                exitTime: exitTime || "Still working",
+                workType,
+                duration
+            };
+            
+            attendanceRecords.push(record);
+            localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
+            
+            // Reset form
+            document.getElementById('attendanceForm').reset();
+            document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+            
+            // Update UI
+            renderAttendanceTable();
+            updateStats();
+            
+            // Show success message
+            showAlert('Attendance recorded successfully!', 'success');
+        }
+        
+        function renderAttendanceTable() {
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+            
+            attendanceRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.employee}</td>
+                    <td>${record.department}</td>
+                    <td>${record.workType}</td>
+                    <td>${record.entryTime}</td>
+                    <td>${record.exitTime}</td>
+                    <td>${record.duration}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function filterAttendance() {
+            const employee = document.getElementById('filterEmployee').value;
+            const workType = document.getElementById('filterWorkType').value;
+            const date = document.getElementById('filterDate').value;
+            
+            let filtered = attendanceRecords;
+            
+            if (employee) {
+                filtered = filtered.filter(record => record.employee === employee);
+            }
+            
+            if (workType) {
+                filtered = filtered.filter(record => record.workType === workType);
+            }
+            
+            if (date) {
+                filtered = filtered.filter(record => record.date === date);
+            }
+            
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+            
+            filtered.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.employee}</td>
+                    <td>${record.department}</td>
+                    <td>${record.workType}</td>
+                    <td>${record.entryTime}</td>
+                    <td>${record.exitTime}</td>
+                    <td>${record.duration}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function clearAttendanceFilters() {
+            document.getElementById('filterEmployee').value = '';
+            document.getElementById('filterWorkType').value = '';
+            document.getElementById('filterDate').value = '';
+            renderAttendanceTable();
+        }
+        
+        function exportAttendancePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Attendance Records', 14, 15);
+            
+            // Prepare table data
+            const tableData = attendanceRecords.map(record => [
+                record.date,
+                record.employee,
+                record.department,
+                record.workType,
+                record.entryTime,
+                record.exitTime,
+                record.duration
+            ]);
+            
+            // Add table
+            doc.autoTable({
+                head: [['Date', 'Employee', 'Department', 'Work Type', 'Entry Time', 'Exit Time', 'Duration']],
+                body: tableData,
+                startY: 20,
+                theme: 'grid'
+            });
+            
+            // Save the PDF
+            doc.save('attendance_records.pdf');
+        }
+        
+        function exportAttendanceExcel() {
+            // Prepare worksheet data
+            const wsData = [
+                ['Date', 'Employee', 'Department', 'Work Type', 'Entry Time', 'Exit Time', 'Duration'],
+                ...attendanceRecords.map(record => [
+                    record.date,
+                    record.employee,
+                    record.department,
+                    record.workType,
+                    record.entryTime,
+                    record.exitTime,
+                    record.duration
+                ])
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+            XLSX.writeFile(wb, "attendance_records.xlsx");
+        }
+        
+        // Invoicing Management
+        function calculateInvoiceTotals() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const rate = parseFloat(document.getElementById('rate').value) || 0;
+            const taxPercentage = parseFloat(document.getElementById('taxPercentage').value) || 0;
+            
+            const subtotal = quantity * rate;
+            const taxAmount = subtotal * (taxPercentage / 100);
+            const grandTotal = subtotal + taxAmount;
+            
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('taxAmount').textContent = taxAmount.toFixed(2);
+            document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+        }
+        
+        function generateInvoice(e) {
+            e.preventDefault();
+            
+            const date = document.getElementById('invoiceDate').value;
+            const client = document.getElementById('clientName').value;
+            const description = document.getElementById('itemDescription').value;
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const taxPercentage = parseFloat(document.getElementById('taxPercentage').value) || 0;
+            
+            const subtotal = quantity * rate;
+            const taxAmount = subtotal * (taxPercentage / 100);
+            const grandTotal = subtotal + taxAmount;
+            
+            // Generate invoice number
+            const invoiceNumber = `INV-${currentInvoiceId++}`;
+            
+            // Create invoice
+            const invoice = {
+                id: invoiceNumber,
+                date,
+                client,
+                description,
+                quantity,
+                rate,
+                taxPercentage,
+                subtotal,
+                taxAmount,
+                grandTotal,
+                status: 'Pending'
+            };
+            
+            invoiceRecords.push(invoice);
+            localStorage.setItem('invoiceRecords', JSON.stringify(invoiceRecords));
+            
+            // Reset form
+            document.getElementById('invoiceForm').reset();
+            document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('subtotal').textContent = '0.00';
+            document.getElementById('taxAmount').textContent = '0.00';
+            document.getElementById('grandTotal').textContent = '0.00';
+            
+            // Update UI
+            renderInvoiceTable();
+            updateStats();
+            
+            // Show success message
+            showAlert('Invoice generated successfully!', 'success');
+        }
+        
+        function previewInvoice() {
+            const date = document.getElementById('invoiceDate').value;
+            const client = document.getElementById('clientName').value;
+            const description = document.getElementById('itemDescription').value;
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const taxPercentage = parseFloat(document.getElementById('taxPercentage').value) || 0;
+            
+            if (!client || !description || !quantity || !rate) {
+                showAlert('Please fill all required fields to preview invoice', 'error');
+                return;
+            }
+            
+            const subtotal = quantity * rate;
+            const taxAmount = subtotal * (taxPercentage / 100);
+            const grandTotal = subtotal + taxAmount;
+            
+            // Create preview invoice object
+            currentPreviewInvoice = {
+                id: `PREVIEW-${Date.now()}`,
+                date,
+                client,
+                description,
+                quantity,
+                rate,
+                taxPercentage,
+                subtotal,
+                taxAmount,
+                grandTotal
+            };
+            
+            // Update preview elements
+            document.getElementById('previewInvoiceNumber').textContent = currentPreviewInvoice.id;
+            document.getElementById('previewDate').textContent = currentPreviewInvoice.date;
+            document.getElementById('previewClient').textContent = currentPreviewInvoice.client;
+            document.getElementById('previewSubtotal').textContent = currentPreviewInvoice.subtotal.toFixed(2);
+            document.getElementById('previewTax').textContent = currentPreviewInvoice.taxAmount.toFixed(2);
+            document.getElementById('previewGrandTotal').textContent = currentPreviewInvoice.grandTotal.toFixed(2);
+            
+            // Update items table
+            const itemsTbody = document.getElementById('previewItems');
+            itemsTbody.innerHTML = `
+                <tr>
+                    <td>${currentPreviewInvoice.description}</td>
+                    <td>${currentPreviewInvoice.quantity}</td>
+                    <td>Rs. ${currentPreviewInvoice.rate.toFixed(2)}</td>
+                    <td>Rs. ${currentPreviewInvoice.subtotal.toFixed(2)}</td>
+                </tr>
+            `;
+            
+            // Show preview
+            document.getElementById('invoicePreview').style.display = 'block';
+        }
+        
+        function downloadInvoicePDF() {
+            if (!currentPreviewInvoice) return;
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('INVOICE', 105, 15, { align: 'center' });
+            
+            // Invoice details
+            doc.setFontSize(12);
+            doc.text(`Invoice #: ${currentPreviewInvoice.id}`, 15, 25);
+            doc.text(`Date: ${currentPreviewInvoice.date}`, 15, 30);
+            
+            // Bill To
+            doc.text(`Bill To: ${currentPreviewInvoice.client}`, 15, 40);
+            
+            // From
+            doc.text('From: ERP Management System', 130, 40);
+            doc.text('Karachi, Pakistan', 130, 45);
+            
+            // Table header
+            doc.autoTable({
+                head: [['Description', 'Quantity', 'Rate', 'Total']],
+                body: [
+                    [
+                        currentPreviewInvoice.description, 
+                        currentPreviewInvoice.quantity, 
+                        `Rs. ${currentPreviewInvoice.rate.toFixed(2)}`, 
+                        `Rs. ${currentPreviewInvoice.subtotal.toFixed(2)}`
+                    ]
+                ],
+                startY: 60,
+                theme: 'grid'
+            });
+            
+            // Totals
+            const startY = doc.lastAutoTable.finalY + 10;
+            doc.text(`Subtotal: Rs. ${currentPreviewInvoice.subtotal.toFixed(2)}`, 150, startY);
+            doc.text(`Tax: Rs. ${currentPreviewInvoice.taxAmount.toFixed(2)}`, 150, startY + 5);
+            doc.setFontSize(14);
+            doc.text(`Grand Total: Rs. ${currentPreviewInvoice.grandTotal.toFixed(2)}`, 150, startY + 15);
+            
+            // Save the PDF
+            doc.save(`invoice_${currentPreviewInvoice.id}.pdf`);
+        }
+        
+        function renderInvoiceTable() {
+            const tbody = document.getElementById('invoiceTableBody');
+            tbody.innerHTML = '';
+            
+            invoiceRecords.forEach(invoice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${invoice.id}</td>
+                    <td>${invoice.date}</td>
+                    <td>${invoice.client}</td>
+                    <td>${invoice.description}</td>
+                    <td>Rs. ${invoice.grandTotal.toFixed(2)}</td>
+                    <td>${invoice.status}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function filterInvoices() {
+            const client = document.getElementById('filterInvoiceClient').value;
+            const date = document.getElementById('filterInvoiceDate').value;
+            
+            let filtered = invoiceRecords;
+            
+            if (client) {
+                filtered = filtered.filter(invoice => invoice.client === client);
+            }
+            
+            if (date) {
+                filtered = filtered.filter(invoice => invoice.date === date);
+            }
+            
+            const tbody = document.getElementById('invoiceTableBody');
+            tbody.innerHTML = '';
+            
+            filtered.forEach(invoice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${invoice.id}</td>
+                    <td>${invoice.date}</td>
+                    <td>${invoice.client}</td>
+                    <td>${invoice.description}</td>
+                    <td>Rs. ${invoice.grandTotal.toFixed(2)}</td>
+                    <td>${invoice.status}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function clearInvoiceFilters() {
+            document.getElementById('filterInvoiceClient').value = '';
+            document.getElementById('filterInvoiceDate').value = '';
+            renderInvoiceTable();
+        }
+        
+        // Delivery Management
+        function recordDelivery(e) {
+            e.preventDefault();
+            
+            const vehicle = document.getElementById('vehicleNumber').value;
+            const driver = document.getElementById('driverName').value;
+            const date = document.getElementById('deliveryDate').value;
+            const destination = document.getElementById('destination').value;
+            const client = document.getElementById('deliveryClient').value;
+            const material = document.getElementById('materialType').value;
+            const quantity = parseFloat(document.getElementById('deliveryQuantity').value);
+            const unit = document.getElementById('quantityUnit').value;
+            
+            // Create record
+            const record = {
+                id: Date.now(),
+                vehicle,
+                driver,
+                date,
+                destination,
+                client,
+                material,
+                quantity: `${quantity} ${unit}`
+            };
+            
+            deliveryRecords.push(record);
+            localStorage.setItem('deliveryRecords', JSON.stringify(deliveryRecords));
+            
+            // Reset form
+            document.getElementById('deliveryForm').reset();
+            document.getElementById('deliveryDate').value = new Date().toISOString().split('T')[0];
+            
+            // Update UI
+            renderDeliveryTable();
+            updateStats();
+            
+            // Show success message
+            showAlert('Delivery recorded successfully!', 'success');
+        }
+        
+        function renderDeliveryTable() {
+            const tbody = document.getElementById('deliveryTableBody');
+            tbody.innerHTML = '';
+            
+            deliveryRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.vehicle}</td>
+                    <td>${record.driver}</td>
+                    <td>${record.destination}</td>
+                    <td>${record.client}</td>
+                    <td>${record.material}</td>
+                    <td>${record.quantity}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function filterDeliveries() {
+            const vehicle = document.getElementById('filterVehicle').value.toLowerCase();
+            const client = document.getElementById('filterDeliveryClient').value;
+            const date = document.getElementById('filterDeliveryDate').value;
+            const material = document.getElementById('filterMaterial').value;
+            
+            let filtered = deliveryRecords;
+            
+            if (vehicle) {
+                filtered = filtered.filter(record => record.vehicle.toLowerCase().includes(vehicle));
+            }
+            
+            if (client) {
+                filtered = filtered.filter(record => record.client === client);
+            }
+            
+            if (date) {
+                filtered = filtered.filter(record => record.date === date);
+            }
+            
+            if (material) {
+                filtered = filtered.filter(record => record.material === material);
+            }
+            
+            const tbody = document.getElementById('deliveryTableBody');
+            tbody.innerHTML = '';
+            
+            filtered.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.vehicle}</td>
+                    <td>${record.driver}</td>
+                    <td>${record.destination}</td>
+                    <td>${record.client}</td>
+                    <td>${record.material}</td>
+                    <td>${record.quantity}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function clearDeliveryFilters() {
+            document.getElementById('filterVehicle').value = '';
+            document.getElementById('filterDeliveryClient').value = '';
+            document.getElementById('filterDeliveryDate').value = '';
+            document.getElementById('filterMaterial').value = '';
+            renderDeliveryTable();
+        }
+        
+        function exportDeliveryPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.text('Delivery Records', 14, 15);
+            
+            // Prepare table data
+            const tableData = deliveryRecords.map(record => [
+                record.date,
+                record.vehicle,
+                record.driver,
+                record.destination,
+                record.client,
+                record.material,
+                record.quantity
+            ]);
+            
+            // Add table
+            doc.autoTable({
+                head: [['Date', 'Vehicle', 'Driver', 'Destination', 'Client', 'Material', 'Quantity']],
+                body: tableData,
+                startY: 20,
+                theme: 'grid'
+            });
+            
+            // Save the PDF
+            doc.save('delivery_records.pdf');
+        }
+        
+        function exportDeliveryExcel() {
+            // Prepare worksheet data
+            const wsData = [
+                ['Date', 'Vehicle', 'Driver', 'Destination', 'Client', 'Material', 'Quantity'],
+                ...deliveryRecords.map(record => [
+                    record.date,
+                    record.vehicle,
+                    record.driver,
+                    record.destination,
+                    record.client,
+                    record.material,
+                    record.quantity
+                ])
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Deliveries");
+            XLSX.writeFile(wb, "delivery_records.xlsx");
+        }
+        
+        // Reports Management
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            const client = document.getElementById('reportClient').value;
+            
+            if (!reportType) {
+                showAlert('Please select a report type', 'error');
+                return;
+            }
+            
+            let reportContent = '';
+            
+            switch(reportType) {
+                case 'attendance':
+                    reportContent = generateAttendanceReport(startDate, endDate);
+                    break;
+                case 'invoice':
+                    reportContent = generateInvoiceReport(startDate, endDate, client);
+                    break;
+                case 'delivery':
+                    reportContent = generateDeliveryReport(startDate, endDate, client);
+                    break;
+                case 'client':
+                    reportContent = generateClientReport(startDate, endDate);
+                    break;
+            }
+            
+            document.getElementById('reportResults').innerHTML = reportContent;
+        }
+        
+        function generateAttendanceReport(startDate, endDate) {
+            const filtered = attendanceRecords.filter(record => 
+                record.date >= startDate && record.date <= endDate
+            );
+            
+            if (filtered.length === 0) {
+                return '<div class="alert alert-info">No attendance records found for the selected date range</div>';
+            }
+            
+            // Group by employee
+            const byEmployee = {};
+            filtered.forEach(record => {
+                if (!byEmployee[record.employee]) {
+                    byEmployee[record.employee] = [];
+                }
+                byEmployee[record.employee].push(record);
+            });
+            
+            let html = `
+                <div class="report-card">
+                    <h4>📋 Attendance Summary (${startDate} to ${endDate})</h4>
+                    <p>Total Records: ${filtered.length}</p>
+            `;
+            
+            // Employee breakdown
+            html += '<h5>Employee Breakdown:</h5><ul>';
+            for (const employee in byEmployee) {
+                html += `<li>${employee}: ${byEmployee[employee].length} records</li>`;
+            }
+            html += '</ul>';
+            
+            // Work type breakdown
+            const byWorkType = filtered.reduce((acc, record) => {
+                acc[record.workType] = (acc[record.workType] || 0) + 1;
+                return acc;
+            }, {});
+            
+            html += '<h5>Work Type Distribution:</h5><ul>';
+            for (const type in byWorkType) {
+                html += `<li>${type}: ${byWorkType[type]}</li>`;
+            }
+            html += '</ul></div>';
+            
+            return html;
+        }
+        
+        function generateInvoiceReport(startDate, endDate, client) {
+            let filtered = invoiceRecords.filter(record => 
+                record.date >= startDate && record.date <= endDate
+            );
+            
+            if (client) {
+                filtered = filtered.filter(record => record.client === client);
+            }
+            
+            if (filtered.length === 0) {
+                return '<div class="alert alert-info">No invoices found for the selected criteria</div>';
+            }
+            
+            const totalAmount = filtered.reduce((sum, invoice) => sum + invoice.grandTotal, 0);
+            
+            let html = `
+                <div class="report-card">
+                    <h4>📋 Invoice Summary (${startDate} to ${endDate})</h4>
+                    <p>Total Invoices: ${filtered.length}</p>
+                    <p>Total Revenue: Rs. ${totalAmount.toFixed(2)}</p>
+            `;
+            
+            // Client breakdown
+            const byClient = filtered.reduce((acc, invoice) => {
+                if (!acc[invoice.client]) {
+                    acc[invoice.client] = { count: 0, amount: 0 };
+                }
+                acc[invoice.client].count++;
+                acc[invoice.client].amount += invoice.grandTotal;
+                return acc;
+            }, {});
+            
+            html += '<h5>Client Breakdown:</h5><ul>';
+            for (const client in byClient) {
+                html += `<li>${client}: ${byClient[client].count} invoices (Rs. ${byClient[client].amount.toFixed(2)})</li>`;
+            }
+            html += '</ul>';
+            
+            // Status breakdown
+            const byStatus = filtered.reduce((acc, invoice) => {
+                acc[invoice.status] = (acc[invoice.status] || 0) + 1;
+                return acc;
+            }, {});
+            
+            html += '<h5>Status Distribution:</h5><ul>';
+            for (const status in byStatus) {
+                html += `<li>${status}: ${byStatus[status]}</li>`;
+            }
+            html += '</ul></div>';
+            
+            return html;
+        }
+        
+        function generateDeliveryReport(startDate, endDate, client) {
+            let filtered = deliveryRecords.filter(record => 
+                record.date >= startDate && record.date <= endDate
+            );
+            
+            if (client) {
+                filtered = filtered.filter(record => record.client === client);
+            }
+            
+            if (filtered.length === 0) {
+                return '<div class="alert alert-info">No deliveries found for the selected criteria</div>';
+            }
+            
+            let html = `
+                <div class="report-card">
+                    <h4>🚛 Delivery Summary (${startDate} to ${endDate})</h4>
+                    <p>Total Deliveries: ${filtered.length}</p>
+            `;
+            
+            // Client breakdown
+            const byClient = filtered.reduce((acc, delivery) => {
+                acc[delivery.client] = (acc[delivery.client] || 0) + 1;
+                return acc;
+            }, {});
+            
+            html += '<h5>Client Breakdown:</h5><ul>';
+            for (const client in byClient) {
+                html += `<li>${client}: ${byClient[client]} deliveries</li>`;
+            }
+            html += '</ul>';
+            
+            // Material breakdown
+            const byMaterial = filtered.reduce((acc, delivery) => {
+                acc[delivery.material] = (acc[delivery.material] || 0) + 1;
+                return acc;
+            }, {});
+            
+            html += '<h5>Material Distribution:</h5><ul>';
+            for (const material in byMaterial) {
+                html += `<li>${material}: ${byMaterial[material]}</li>`;
+            }
+            html += '</ul></div>';
+            
+            return html;
+        }
+        
+        function generateClientReport(startDate, endDate) {
+            // Get all unique clients from invoices and deliveries
+            const invoiceClients = [...new Set(invoiceRecords.map(inv => inv.client))];
+            const deliveryClients = [...new Set(deliveryRecords.map(del => del.client))];
+            const allClients = [...new Set([...invoiceClients, ...deliveryClients])];
+            
+            if (allClients.length === 0) {
+                return '<div class="alert alert-info">No client data available</div>';
+            }
+            
+            let html = `
+                <div class="report-card">
+                    <h4>👥 Client Summary</h4>
+                    <p>Total Clients: ${allClients.length}</p>
+            `;
+            
+            // Client details
+            html += '<h5>Client Activities:</h5><ul>';
+            allClients.forEach(client => {
+                // Count invoices for this client
+                const clientInvoices = invoiceRecords.filter(inv => 
+                    inv.client === client && 
+                    (!startDate || inv.date >= startDate) && 
+                    (!endDate || inv.date <= endDate)
+                );
+                
+                // Count deliveries for this client
+                const clientDeliveries = deliveryRecords.filter(del => 
+                    del.client === client && 
+                    (!startDate || del.date >= startDate) && 
+                    (!endDate || del.date <= endDate)
+                );
+                
+                html += `
+                    <li>
+                        <strong>${client}</strong>
+                        <ul>
+                            <li>Invoices: ${clientInvoices.length}</li>
+                            <li>Deliveries: ${clientDeliveries.length}</li>
+                        </ul>
+                    </li>
+                `;
+            });
+            html += '</ul></div>';
+            
+            return html;
+        }
+        
+        // Utility Functions
+        function updateStats() {
+            // Attendance stats
+            const today = new Date().toISOString().split('T')[0];
+            const todayRecords = attendanceRecords.filter(record => record.date === today);
+            document.getElementById('todayAttendance').textContent = todayRecords.length;
+            document.getElementById('activeEmployees').textContent = new Set(attendanceRecords.map(r => r.employee)).size;
+            
+            // Invoice stats
+            document.getElementById('totalInvoices').textContent = invoiceRecords.length;
+            const monthlyRevenue = invoiceRecords.reduce((sum, invoice) => sum + invoice.grandTotal, 0);
+            document.getElementById('monthlyRevenue').textContent = `Rs. ${monthlyRevenue.toFixed(2)}`;
+            const pendingInvoices = invoiceRecords.filter(inv => inv.status === 'Pending').length;
+            document.getElementById('pendingInvoices').textContent = pendingInvoices;
+            
+            // Delivery stats
+            document.getElementById('totalDeliveries').textContent = deliveryRecords.length;
+            document.getElementById('activeVehicles').textContent = new Set(deliveryRecords.map(d => d.vehicle)).size;
+            const thisMonth = new Date().getMonth();
+            const monthlyDeliveries = deliveryRecords.filter(d => {
+                const recordMonth = new Date(d.date).getMonth();
+                return recordMonth === thisMonth;
+            }).length;
+            document.getElementById('monthlyDeliveries').textContent = monthlyDeliveries;
+        }
+        
+        function showAlert(message, type) {
+            // For simplicity, using browser alert
+            alert(message);
+        }
+        
+        // Initialize the application when the page loads
+        window.onload = initApp;
+    </script>
+</body>
+</html>
